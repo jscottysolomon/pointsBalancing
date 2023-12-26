@@ -3,7 +3,7 @@ from sympy import *
 
 # Event Variables
 teamSize = 4
-teamCount = 8
+teamCount = 9
 N = teamSize * teamCount
 TOTAL = 5500
 print("Team size: ", teamSize)
@@ -44,39 +44,74 @@ def survivalGames(WP, AAE, M):
     print("\tKill Points: ", killPoints)
 
 # Bingo
-def bingo():
+def bingo(multiplier):
     """
     Calculates the initial points awarded and the drop
     off for each time an item is collected.
 
     Assumes that each item can only be collected up to 
-    four times for points.
+    five times for points.
+
+    The predictions for the number of finishes is hard
+    to predict. In previous events, the 14/25 items
+    were found by four teams (the max), with only 
+    3/25 items not being found by any teams within
+    the alloted times. I'm assuming that by letting
+    each item be collected 5 times instead of 4 times,
+    there will continue to be a right-skew in the data,
+    that peaks at 5 finishes, rather than a more uniform
+    distribution between 5 and 4 finishes.
+
+    :param multiplier: How much bigger the initial points
+    are compared to the dropOff. initial = drop * multiplier.
     """
-    itemNumber = 24
 
-    fourFinishes = 14
-    threeFinishes = 3
+    fiveFinishes = 12
+    fourFinishes = 4
+    threeFinishes = 2
     twoFinishes = 1
-    oneFinish = 4
+    oneFinish = 3
 
-    multiplier = 0.2
+    a = integrate(y-(y*multiplier*x), (x,0,5))
+    b = integrate(y-(y*multiplier*x), (x,0,4))
+    c = integrate(y-(y*multiplier*x), (x,0,3))
+    d = integrate(y-(y*multiplier*x), (x,0,2))
+    e = integrate(y-(y*multiplier*x), (x,0,1))
 
-    a = integrate(y-(y*multiplier*x), (x,0,4))
-    b = integrate(y-(y*multiplier*x), (x,0,3))
-    c = integrate(y-(y*multiplier*x), (x,0,2))
-    d = integrate(y-(y*multiplier*x), (x,0,1))
-
-    equation = Eq(fourFinishes*a+threeFinishes*b+twoFinishes*c+oneFinish*d, TOTAL)
+    equation = Eq(fiveFinishes*a+fourFinishes*b+threeFinishes*c+twoFinishes*d+oneFinish*e, TOTAL)
     solution = solve(equation, y)
 
     decimal_solution = [float(sol.evalf()) for sol in solution]
 
     initial = round(decimal_solution[0])
-    drop = round(initial * 0.2 * 2) / 2
+    drop = round(initial * multiplier * 2) / 2
 
     print("Bingo")
     print("\tInitial: ", initial)
     print("\tDrop: ", drop)
+    print("\t---------------")
+    print("\tFirst Place: ", initial)
+    print("\tSecond Place: ", initial-(drop*2))
+    print("\tThird Place: ", initial-(drop*3))
+    print("\tFourth Place: ", initial-(drop*4))
+    print("\tFifth Place: ", initial-(drop*5))
+    print("\t~~~~~~~~~~~~~~~")
+
+    
+
+    a = integrate(initial-(drop*x), (x,0,5))
+    b = integrate(initial-(drop*x), (x,0,4))
+    c = integrate(initial-(drop*x), (x,0,3))
+    d = integrate(initial-(drop*x), (x,0,2))
+    e = integrate(initial-(drop*x), (x,0,1))
+
+    equation = Eq(fiveFinishes*a+fourFinishes*b+threeFinishes*c+twoFinishes*d+oneFinish*e, y)
+
+    solution = solve(equation,y)
+    decimal_solution = [float(sol.evalf()) for sol in solution]
+    print("\tprojected",decimal_solution[0])
+
+    
 
 # TGTTOS
 def otherSide(drop):
@@ -285,10 +320,8 @@ def dropper(drop):
 if __name__ == '__main__':
     otherSide(2)
     survivalGames(400,2,10)
-    bingo()
+    bingo(0.10)
     battleBox(0.47)
     tntRun(50,40,20,3)
     parkour(0.5,24)
-    dropper(1)
-
-# print(z)
+    dropper(0.5)
